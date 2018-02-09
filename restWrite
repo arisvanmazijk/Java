@@ -1,0 +1,40 @@
+public restWrite(String system, Container container) throws StreamTransformationException{
+
+AbstractTrace trace = container.getTrace();
+String status = "offline";
+String schema;
+
+try{ 
+	String sys = (String) System.getProperty("SAPSYSTEMNAME");
+
+	if (sys.equals("DEV")) {
+		schema = "jdbc/SAPDEVDB";
+	} else if (sys.equals("ACC")) {
+		schema = "jdbc/SAPACCDB";
+	} else {
+		schema = "jdbc/SAPPRDDB";
+	} 
+
+	if (system.equals( "main_system"))	{
+		status = "online";
+	}
+
+	InitialContext ctx = new InitialContext();
+	DataSource ds = (DataSource) ctx.lookup(schema);
+	Connection con = ds.getConnection();
+
+ 	String sql = "UPDATE Z_STATUS SET STATUS = ? WHERE NUMBER = ?";
+	PreparedStatement prest = con.prepareStatement(sql);
+	prest.setString(1, status);
+	prest.setInt(2, 1);
+
+	prest.executeUpdate();
+
+}
+catch (Exception e){
+   trace.addWarning("Error" + e);
+}
+
+return system;
+
+}
